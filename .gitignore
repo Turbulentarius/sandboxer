@@ -1,0 +1,43 @@
+dbdata
+
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Linux
+*~
+
+# Backup files
+*.bak
+*.swp
+*.swo
+*.tmp
+*.orig
+
+# Logs
+*.log
+*.out
+*.err
+
+# Lock files
+*.lock
+
+# Temporary files
+*.temp
+*.cache
+*.pid
+*.seed
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.gz

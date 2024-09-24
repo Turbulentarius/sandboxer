@@ -1,0 +1,39 @@
+volumes:
+  mariadb:
+    driver: local
+
+networks:
+    db:
+        driver: bridge
+
+services:
+  mariadb:
+    image: mariadb:10.6
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: superduperroot
+      MYSQL_USER:  exodriver
+      MYSQL_PASSWORD: localuserpassword
+    expose:
+        - "40000"
+    ports:
+        - "40000:3306"
+    volumes:
+     - ./dbdata:/var/lib/mysql
+    networks:
+      db:
+
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    expose:
+      - "40001"
+    ports:
+      - "40001:80"
+    environment:
+      - PMA_HOST=mariadb
+      - PMA_PORT=3306
+      - PMA_USER=root
+      - PMA_PASSWORD=superduperroot
+    networks:
+      db:
