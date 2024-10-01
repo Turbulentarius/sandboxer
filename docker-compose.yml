@@ -3,37 +3,74 @@ volumes:
     driver: local
 
 networks:
-    db:
+    sandboxer:
         driver: bridge
 
 services:
-  mariadb:
-    image: mariadb:10.6
+  setup: # A one-time-run setup service for when starting containers. Also, this is the service name which should only be unique to this docker-compose project
+    container_name: sandboxer-setup # The name of the container. Should be unique, possibly prefixed to avoid potential collisions with other containers outside of the project
+    command: /bin/sh /phpmyadmin.sh
+    build:
+      context: ./
+      dockerfile: setup.dockerfile
+    image: sandboxer-setup
+    volumes:
+      - ./www:/srv/sandboxer
+    restart: no
+  db:
+    container_name: sandboxer-db
+    image: mariadb:11.2.4
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: superduperroot
-      MYSQL_USER:  exodriver
+      MYSQL_USER:  sandboxer
       MYSQL_PASSWORD: localuserpassword
     expose:
-        - "40000"
-    ports:
-        - "40000:3306"
+        - "3306" # Expose a port on the virtual network (sandboxer), but do not expose it on the HOST
     volumes:
      - ./dbdata:/var/lib/mysql
     networks:
-      db:
-
-  phpmyadmin:
-    image: phpmyadmin
-    restart: always
+      sandboxer:
+  php:
+    container_name: sandboxer-php # Name of the container; this is already prefixed with "sandboxer". E.g. run "docker ps" to see what I mean
+    build:
+      context: ./
+      dockerfile: ./php8.2-fpm.dockerfile
+    image: sandboxer-php # Name of the image to build
     expose:
-      - "40001"
-    ports:
-      - "40001:80"
-    environment:
-      - PMA_HOST=mariadb
-      - PMA_PORT=3306
-      - PMA_USER=root
-      - PMA_PASSWORD=superduperroot
+      - "9000" # Expose a port on the virtual network (sandboxer), but do not expose it on the HOST
     networks:
+      - sandboxer
+    volumes:
+      - ./www:/srv/sandboxer # Mount a "www" directory on the host that is shared with the web server. E.g. Apache or Nginx
+      - ./log/php:/var/log/php82 # Mount the log file directory to a place on host so we can access the log files
+    environment:
+      PHP_MEMORY_LIMIT: 1024M
+      PHP_UPLOAD_LIMIT: 512M
+      PHP_DISPLAY_ERRORS: 1
+      MYSQL_ROOT_PASSWORD: superduperroot
+      MYSQL_DATABASE: sandbox
+      MYSQL_USER: sandboxer
+      MYSQL_PASSWORD: localuserpassword
+    restart: unless-stopped
+  apache2:
+    container_name: sandboxer-apache2
+    ports:
+      - "80:80" # Expose a port on the HOST network. Note. This is needed for the port to be accessible in a browser. E.g. Via "http://sandboxer.localhost"
+      - "443:443"
+    networks:
+      - sandboxer
+    build:
+      context: ./
+      dockerfile: apache2.dockerfile
+    image: sandboxer-apache2
+    volumes:
+      - ./www:/srv/sandboxer
+      - ./log/apache2:/var/log/apache2
+    restart: unless-stopped
+    depends_on:
       db:
+        condition: service_started
+      php:
+        condition: service_started
+
