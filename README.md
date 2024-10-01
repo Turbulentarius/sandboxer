@@ -33,10 +33,6 @@ The `root` password is `superduperroot`.
 - To open phpMyAdmin, open `http://database.localhost` in a browser.
 - To open the default (localhost) website host, open `http://localhost`
 
-If port numbers are annoying, you can simplyfy access via standard port **80**. E.g. By adding a custom lan host-name to the host file in your OS, then adjust the web server v-host to handle the custom hostname. I suggest using ".localhost". E.g. `phpmyadmin.localhost`.
-E.g. `/etc/host` on mac/linux, and `c:\Windows\System32\Drivers\etc\hosts` on Windows!
-
-
 > [!WARNING]  
 > **Do NOT use this for deployment on production!**
 >
