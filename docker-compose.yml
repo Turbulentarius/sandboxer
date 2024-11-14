@@ -25,10 +25,11 @@ services:
       MYSQL_ROOT_PASSWORD: superduperroot
       MYSQL_USER:  sandboxer
       MYSQL_PASSWORD: localuserpassword
-    expose:
-        - "3306" # Expose a port on the virtual network (sandboxer), but do not expose it on the HOST
+    ports:
+        - "3306:3306"
     volumes:
      - ./dbdata:/var/lib/mysql
+     - ./iedata:/srv/iedata
     networks:
       sandboxer:
   php:
