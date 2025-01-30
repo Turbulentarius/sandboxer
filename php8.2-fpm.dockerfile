@@ -47,7 +47,8 @@ RUN apk add --no-cache \
 COPY ./config/php82/php-fpm.d/www.conf /etc/php82/php-fpm.d/www.conf
 COPY ./config/php82/php.ini /etc/php82/php.ini
 
-RUN mkdir -p /srv/sandboxer
+RUN mkdir -p /srv/sandboxer && \
+    chmod -R 775 /srv/sandboxer
 
 WORKDIR /srv/sandboxer
 

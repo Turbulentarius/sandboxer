@@ -5,14 +5,17 @@ RUN apk add --no-cache \
         apache2-proxy \
         apache2-webdav \
         apache-mod-fcgid \
-        bash
+        bash \
+		curl
 
 
 COPY ./config/apache2/conf.d/sandboxer.conf /etc/apache2/conf.d/sandboxer.conf
 COPY ./config/apache2/conf.d/phpmyadmin.conf /etc/apache2/conf.d/phpmyadmin.conf
 COPY ./config/apache2/httpd.conf /etc/apache2/httpd.conf
 
-RUN mkdir /srv/sandboxer
+RUN mkdir -p /srv/sandboxer && \
+    chmod -R 775 /srv/sandboxer
+
 WORKDIR /srv/sandboxer
 
 # Ensure Apache runs in the foreground
