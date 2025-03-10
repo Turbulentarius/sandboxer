@@ -59,6 +59,7 @@ services:
     ports:
       - "80:80" # Expose a port on the HOST network. Note. This is needed for the port to be accessible in a browser. E.g. Via "http://sandboxer.localhost"
       - "443:443"
+      - "8000:8000"
     networks:
       - sandboxer
     build:
