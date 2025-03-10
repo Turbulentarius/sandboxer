@@ -2,8 +2,11 @@ FROM alpine:3.20.1
 RUN apk add --no-cache \
         bash \
         shadow \
+        curl \
         php82 \
         php82-fpm \
+        sqlite \
+        php82-pdo_sqlite \
         imagemagick \
         imagemagick-pdf \
         imagemagick-jpeg \
@@ -42,7 +45,10 @@ RUN apk add --no-cache \
         php82-pdo_mysql \
         php82-mbstring \
         php82-sysvsem \
-        php82-zip
+        php82-zip \
+        php82-phar \
+        php82-openssl \
+        php82-tokenizer
 
 COPY ./config/php82/php-fpm.d/www.conf /etc/php82/php-fpm.d/www.conf
 COPY ./config/php82/php.ini /etc/php82/php.ini
@@ -51,6 +57,9 @@ RUN mkdir -p /srv/sandboxer && \
     chmod -R 775 /srv/sandboxer
 
 WORKDIR /srv/sandboxer
+
+RUN ln -s /usr/bin/php82 /usr/bin/php
+RUN curl -sS https://getcomposer.org/installer | php82 -- --install-dir=/usr/local/bin --filename=composer
 
 # Ensure PHP-FPM runs in the foreground
 CMD ["php-fpm82", "-R", "-F"]
