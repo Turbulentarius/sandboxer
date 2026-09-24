@@ -46,3 +46,38 @@ Use `docker compose ps` to confirm published ports show `127.0.0.1`.
 > **Do NOT use this for deployment on production!**
 >
 > Local-only port bindings do not make the development credentials or configuration suitable for production.
+
+## phpMyAdmin setup
+
+The setup service installs phpMyAdmin only when `www/setup-completed` is absent.
+Download, extraction, or configuration errors stop setup without writing that
+marker. Temporary installation files are cleaned up on normal exit or failure.
+After fixing the cause, retry with `docker compose run --rm setup`.
+Rebuild script changes first with `docker compose build setup`.
+
+An existing `www/phpmyadmin` directory without a completion marker is preserved
+and setup stops for inspection. Move that directory aside before retrying if
+you want a fresh installation. Existing completion markers are still honored;
+this change does not repair or upgrade previous installations automatically.
+
+For isolated script checks, `SANDBOXER_ROOT` and `PHPMYADMIN_CONFIG` can override
+the destination and configuration source. Their container defaults are
+`/srv/sandboxer` and `/config.inc.php`.
+
+## Testing the phpMyAdmin installer
+
+Run the tests after changing the installer or its tests, before committing.
+They require Python 3, a POSIX shell, and `unzip` on your host. From the
+repository root:
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
+```
+
+Expect six tests reporting `ok`, followed by `OK`. They check installation,
+failure handling, retries, cleanup, and preservation of existing files.
+
+The tests use temporary directories and a fake download. They are safe to run
+with phpMyAdmin installed and do not touch your application or database data.
+They are not needed during normal use and do not replace testing the real
+installation in Docker.
