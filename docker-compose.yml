@@ -26,7 +26,7 @@ services:
       MYSQL_USER:  sandboxer
       MYSQL_PASSWORD: localuserpassword
     ports:
-        - "3306:3306"
+        - "127.0.0.1:3306:3306"
     volumes:
      - ./dbdata:/var/lib/mysql
      - ./iedata:/srv/iedata
@@ -57,9 +57,9 @@ services:
   apache2:
     container_name: sandboxer-apache2
     ports:
-      - "80:80" # Expose a port on the HOST network. Note. This is needed for the port to be accessible in a browser. E.g. Via "http://sandboxer.localhost"
-      - "443:443"
-      - "8000:8000"
+      - "127.0.0.1:80:80" # Publish only on the host's IPv4 loopback interface.
+      - "127.0.0.1:443:443"
+      - "127.0.0.1:8000:8000"
     networks:
       - sandboxer
     build:
@@ -75,4 +75,3 @@ services:
         condition: service_started
       php:
         condition: service_started
-

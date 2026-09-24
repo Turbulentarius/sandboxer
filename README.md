@@ -33,7 +33,16 @@ The `root` password is `superduperroot`.
 - To open phpMyAdmin, open `http://database.localhost` in a browser.
 - To open the default (localhost) website host, open `http://localhost`
 
+Published ports bind to `127.0.0.1` (IPv4 loopback) for access from the Docker host.
+For a database client on the host, connect to `127.0.0.1:3306`; containers continue
+to use `db:3306`. Access from another device requires an intentional change to
+the port bindings and a review of the development credentials.
+
+After changing port bindings, run `docker compose up -d` to recreate affected
+containers. `docker compose restart` does not apply Compose configuration changes.
+Use `docker compose ps` to confirm published ports show `127.0.0.1`.
+
 > [!WARNING]  
 > **Do NOT use this for deployment on production!**
 >
-> Ports may be exposed directly on the host WAN!!
+> Local-only port bindings do not make the development credentials or configuration suitable for production.
