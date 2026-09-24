@@ -1,5 +1,7 @@
 """Offline setup checks: python3 -m unittest discover -s tests -v."""
+import hashlib
 import os
+import re
 from pathlib import Path
 import subprocess
 import tempfile
@@ -20,7 +22,9 @@ class SetupTests(unittest.TestCase):
         self.config.write_text('<?php // fixture\n')
         self.archive = self.root / 'fixture.zip'
         with zipfile.ZipFile(self.archive, 'w') as archive:
-            archive.writestr('phpMyAdmin-5.2.1-all-languages/index.php', '<?php\n')
+            archive.writestr('phpMyAdmin-5.2.3-all-languages/index.php', '<?php\n')
+        self.script = self.root / 'phpmyadmin.sh'
+        self.prepare_script()
         binaries = self.root / 'bin'
         binaries.mkdir()
         wget = binaries / 'wget'
@@ -32,8 +36,18 @@ class SetupTests(unittest.TestCase):
                         FIXTURE_ARCHIVE=str(self.archive), FAIL_DOWNLOAD='0',
                         PATH=str(binaries) + os.pathsep + os.environ['PATH'])
 
+    def prepare_script(self):
+        # The tiny fixture has its own checksum. Change only the pinned hash in
+        # a temporary script copy, leaving real checksum verification active.
+        digest = hashlib.sha256(self.archive.read_bytes()).hexdigest()
+        source, count = re.subn(r'^archive_sha256=[0-9a-f]{64}$',
+                               'archive_sha256=' + digest,
+                               SCRIPT.read_text(), flags=re.MULTILINE)
+        self.assertEqual(count, 1)
+        self.script.write_text(source)
+
     def run_setup(self):
-        result = subprocess.run(['sh', str(SCRIPT)], env=self.env,
+        result = subprocess.run(['sh', str(self.script)], env=self.env,
                                 capture_output=True, text=True)
         self.assertFalse(list(self.destination.glob('.phpmyadmin-setup.*')))
         return result
@@ -62,6 +76,14 @@ class SetupTests(unittest.TestCase):
 
     def test_invalid_archive(self):
         self.archive.write_text('not a zip archive')
+        self.prepare_script()  # Pass checksum verification to exercise unzip failure.
+        self.assert_failed()
+        self.assertFalse((self.destination / 'phpmyadmin').exists())
+
+    def test_checksum_mismatch(self):
+        # Alter the downloaded bytes after pinning the fixture's checksum.
+        with self.archive.open('ab') as archive:
+            archive.write(b'changed download')
         self.assert_failed()
         self.assertFalse((self.destination / 'phpmyadmin').exists())
 

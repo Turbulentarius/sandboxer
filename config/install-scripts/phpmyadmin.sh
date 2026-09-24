@@ -3,6 +3,9 @@ set -eu
 
 destination=${SANDBOXER_ROOT:-/srv/sandboxer}
 configuration=${PHPMYADMIN_CONFIG:-/config.inc.php}
+# Official all-languages ZIP checksum; update alongside the pinned version.
+# https://files.phpmyadmin.net/phpMyAdmin/5.2.3/phpMyAdmin-5.2.3-all-languages.zip.sha256
+archive_sha256=2d2e13c735366d318425c78e4ee2cc8fc648d77faba3ddea2cd516e43885733f
 
 if [ -f "$destination/setup-completed" ]; then
     echo "Setup not requested... Exiting setup..."
@@ -27,10 +30,12 @@ trap 'rm -rf "$staging"' EXIT
 # Forced termination (SIGKILL) or power loss cannot be caught for cleanup.
 trap 'exit 1' HUP INT TERM
 
-wget -O "$staging/phpmyadmin.zip" https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.zip
+wget -O "$staging/phpmyadmin.zip" https://files.phpmyadmin.net/phpMyAdmin/5.2.3/phpMyAdmin-5.2.3-all-languages.zip
+# Reject incomplete or altered downloads before extracting any files.
+printf '%s  %s\n' "$archive_sha256" "$staging/phpmyadmin.zip" | sha256sum -c -
 unzip -q "$staging/phpmyadmin.zip" -d "$staging"
-test -f "$staging/phpMyAdmin-5.2.1-all-languages/index.php"
-cp "$configuration" "$staging/phpMyAdmin-5.2.1-all-languages/config.inc.php"
-mv "$staging/phpMyAdmin-5.2.1-all-languages" "$destination/phpmyadmin"
+test -f "$staging/phpMyAdmin-5.2.3-all-languages/index.php"
+cp "$configuration" "$staging/phpMyAdmin-5.2.3-all-languages/config.inc.php"
+mv "$staging/phpMyAdmin-5.2.3-all-languages" "$destination/phpmyadmin"
 touch "$destination/setup-completed"
 echo "Setup complete."

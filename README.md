@@ -49,8 +49,9 @@ Use `docker compose ps` to confirm published ports show `127.0.0.1`.
 
 ## phpMyAdmin setup
 
-The setup service installs phpMyAdmin only when `www/setup-completed` is absent.
-Download, extraction, or configuration errors stop setup without writing that
+The setup service installs phpMyAdmin 5.2.3 only when `www/setup-completed` is absent.
+The downloaded ZIP is verified against a pinned SHA-256 checksum before extraction.
+Download, checksum, extraction, or configuration errors stop setup without writing that
 marker. Temporary installation files are cleaned up on normal exit or failure.
 After fixing the cause, retry with `docker compose run --rm setup`.
 Rebuild script changes first with `docker compose build setup`.
@@ -67,15 +68,15 @@ the destination and configuration source. Their container defaults are
 ## Testing the phpMyAdmin installer
 
 Run the tests after changing the installer or its tests, before committing.
-They require Python 3, a POSIX shell, and `unzip` on your host. From the
+They require Python 3, a POSIX shell, `sha256sum`, and `unzip` on your host. From the
 repository root:
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 ```
 
-Expect six tests reporting `ok`, followed by `OK`. They check installation,
-failure handling, retries, cleanup, and preservation of existing files.
+Expect seven tests reporting `ok`, followed by `OK`. They check installation,
+checksum verification, failure handling, retries, cleanup, and preservation of existing files.
 
 The tests use temporary directories and a fake download. They are safe to run
 with phpMyAdmin installed and do not touch your application or database data.
