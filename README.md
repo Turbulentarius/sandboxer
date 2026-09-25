@@ -47,6 +47,26 @@ Use `docker compose ps` to confirm published ports show `127.0.0.1`.
 >
 > Local-only port bindings do not make the development credentials or configuration suitable for production.
 
+## Alpine and PHP
+
+The custom images use Alpine 3.24.2. PHP runs from Alpine's `php85` packages
+(PHP 8.5; the patch version follows the Alpine 3.24 package repository).
+PHP configuration lives in `config/php85/` and the image definition is
+`php8.5-fpm.dockerfile`. OPcache is built into PHP 8.5.
+
+After changing these files, rebuild and check the services:
+
+```bash
+docker compose build --pull setup php apache2
+docker compose run --rm --no-deps php php -v
+docker compose run --rm --no-deps php php-fpm85 -t
+docker compose run --rm --no-deps apache2 httpd -t
+docker compose up -d php apache2
+```
+
+Test your PHP application and phpMyAdmin in the browser after upgrading.
+Package availability does not guarantee application compatibility with PHP 8.5.
+
 ## MariaDB version
 
 The database uses the official `mariadb:11.4.13` image from the

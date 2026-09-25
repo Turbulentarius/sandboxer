@@ -36,7 +36,7 @@ services:
     container_name: sandboxer-php # Name of the container; this is already prefixed with "sandboxer". E.g. run "docker ps" to see what I mean
     build:
       context: ./
-      dockerfile: ./php8.2-fpm.dockerfile
+      dockerfile: ./php8.5-fpm.dockerfile
     image: sandboxer-php # Name of the image to build
     expose:
       - "9000" # Expose a port on the virtual network (sandboxer), but do not expose it on the HOST
@@ -44,7 +44,7 @@ services:
       - sandboxer
     volumes:
       - ./www:/srv/sandboxer # Mount a "www" directory on the host that is shared with the web server. E.g. Apache or Nginx
-      - ./log/php:/var/log/php82 # Mount the log file directory to a place on host so we can access the log files
+      - ./log/php:/var/log/php85 # Mount the log file directory to a place on host so we can access the log files
     environment:
       PHP_MEMORY_LIMIT: 1024M
       PHP_UPLOAD_LIMIT: 512M
