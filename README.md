@@ -47,6 +47,29 @@ Use `docker compose ps` to confirm published ports show `127.0.0.1`.
 >
 > Local-only port bindings do not make the development credentials or configuration suitable for production.
 
+## MariaDB version
+
+The database uses the official `mariadb:11.4.13` image from the
+[11.4 LTS series](https://mariadb.org/about/#maintenance-policy).
+Database files persist in `dbdata/`; recreating a container does not reset them.
+
+When moving from 11.2, test with a fresh data directory if the old data is
+unneeded. Stop `db` before moving its data directory aside. If retaining data,
+back it up and follow the upstream upgrade instructions before starting the new
+version. Do not run an older image against files already upgraded by a newer one.
+
+After preparing the data directory, run:
+
+```bash
+docker compose pull db
+docker compose up -d --no-deps db
+docker compose logs --tail=50 db
+docker compose exec db mariadb -uroot -p -e "SELECT VERSION();"
+```
+
+Expect version `11.4.13` (possibly with a packaging suffix), then verify database
+access through phpMyAdmin at `http://database.localhost`.
+
 ## phpMyAdmin setup
 
 The setup service installs phpMyAdmin 5.2.3 only when `www/setup-completed` is absent.
