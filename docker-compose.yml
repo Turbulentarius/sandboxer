@@ -23,6 +23,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: superduperroot
+      MYSQL_DATABASE: sandbox
       MYSQL_USER:  sandboxer
       MYSQL_PASSWORD: localuserpassword
     ports:

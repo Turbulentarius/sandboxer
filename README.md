@@ -73,6 +73,10 @@ The database uses the official `mariadb:11.4.13` image from the
 [11.4 LTS series](https://mariadb.org/about/#maintenance-policy).
 Database files persist in `dbdata/`; recreating a container does not reset them.
 
+On first initialization, MariaDB creates the `sandbox` database and grants
+`sandboxer` access using the development password `localuserpassword`. These
+initialization settings do not change an existing database directory.
+
 When moving from 11.2, test with a fresh data directory if the old data is
 unneeded. Stop `db` before moving its data directory aside. If retaining data,
 back it up and follow the upstream upgrade instructions before starting the new
