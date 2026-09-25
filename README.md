@@ -96,6 +96,9 @@ access through phpMyAdmin at `http://database.localhost`.
 
 ## phpMyAdmin setup
 
+phpMyAdmin connects automatically as `sandboxer`, with access to the `sandbox`
+database. Use the root CLI login above for server-wide administration.
+
 The setup service installs phpMyAdmin 5.2.3 only when `www/setup-completed` is absent.
 The downloaded ZIP is verified against a pinned SHA-256 checksum before extraction.
 Download, checksum, extraction, or configuration errors stop setup without writing that

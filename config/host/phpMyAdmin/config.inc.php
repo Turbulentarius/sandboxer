@@ -26,8 +26,8 @@ $i = 0;
 $i++;
 /* Authentication type */
 $cfg['Servers'][$i]['auth_type'] = 'config';
-$cfg['Servers'][$i]['user'] = 'root';
-$cfg['Servers'][$i]['password'] = 'superduperroot';
+$cfg['Servers'][$i]['user'] = 'sandboxer';
+$cfg['Servers'][$i]['password'] = 'localuserpassword';
 /* Server parameters */
 $cfg['Servers'][$i]['host'] = 'db'; // Use the hostname from docker-compose (service name unique only to this docker-compose project)
 $cfg['Servers'][$i]['compress'] = false;
