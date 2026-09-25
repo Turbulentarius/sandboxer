@@ -67,6 +67,12 @@ docker compose up -d php apache2
 Test your PHP application and phpMyAdmin in the browser after upgrading.
 Package availability does not guarantee application compatibility with PHP 8.5.
 
+PHP applications can read `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_DATABASE`,
+`MYSQL_USER`, and `MYSQL_PASSWORD` with `getenv()`. These are explicitly passed
+through to FPM workers in `config/php85/php-fpm.d/www.conf`; other inherited
+variables remain cleared. PHP receives the application account, not the database
+root password. Rebuild PHP after changing the FPM configuration.
+
 ## MariaDB version
 
 The database uses the official `mariadb:11.4.13` image from the

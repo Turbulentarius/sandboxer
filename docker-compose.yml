@@ -47,7 +47,8 @@ services:
       - ./www:/srv/sandboxer # Mount a "www" directory on the host that is shared with the web server. E.g. Apache or Nginx
       - ./log/php:/var/log/php85 # Mount the log file directory to a place on host so we can access the log files
     environment:
-      MYSQL_ROOT_PASSWORD: superduperroot
+      MYSQL_HOST: db
+      MYSQL_PORT: "3306"
       MYSQL_DATABASE: sandbox
       MYSQL_USER: sandboxer
       MYSQL_PASSWORD: localuserpassword
