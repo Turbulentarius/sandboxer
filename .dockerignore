@@ -1,0 +1,12 @@
+# Local application files and runtime data are mounted by Compose.
+www/
+dbdata/
+iedata/
+log/
+
+# Repository history is not needed to build images.
+.git/
+
+# Generated Python bytecode.
+**/__pycache__/
+**/*.py[cod]
