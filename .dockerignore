@@ -1,12 +1,35 @@
-# Local application files and runtime data are mounted by Compose.
+# Docker build context
+#
+# The build context is the set of files Docker is allowed to access while building
+# an image. Docker Compose uses the repository root as the build context, so files
+# in this directory may otherwise be scanned, hashed, or transferred to the builder
+# even when a Dockerfile never copies them into the image.
+#
+# Excluding unnecessary files keeps the build context smaller. This reduces
+# filesystem work and data transfer and can make builds faster, especially when
+# directories contain many files or large amounts of runtime data.
+#
+# These exclusions do not delete or modify local files, and they do not affect
+# directories mounted into running containers by Docker Compose.
+#
+# The Dockerfiles in this project already COPY only the configuration files they
+# need. Therefore, these rules mainly reduce build-context overhead and prevent
+# irrelevant files from becoming build inputs; they do not significantly reduce
+# the size of the resulting images.
+#
+# .dockerignore is evaluated by Docker independently of .gitignore.
+
+# Application files and runtime data are provided to containers through Compose
+# mounts and are not required while building the images.
 www/
 dbdata/
 iedata/
 log/
 
-# Repository history is not needed to build images.
+# Git history and metadata are irrelevant to the image build.
 .git/
 
-# Generated Python bytecode.
+# Python bytecode and cache directories are generated locally and are not needed
+# by the builder.
 **/__pycache__/
 **/*.py[cod]
