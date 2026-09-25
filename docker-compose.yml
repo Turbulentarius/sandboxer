@@ -46,9 +46,6 @@ services:
       - ./www:/srv/sandboxer # Mount a "www" directory on the host that is shared with the web server. E.g. Apache or Nginx
       - ./log/php:/var/log/php85 # Mount the log file directory to a place on host so we can access the log files
     environment:
-      PHP_MEMORY_LIMIT: 1024M
-      PHP_UPLOAD_LIMIT: 512M
-      PHP_DISPLAY_ERRORS: 1
       MYSQL_ROOT_PASSWORD: superduperroot
       MYSQL_DATABASE: sandbox
       MYSQL_USER: sandboxer
