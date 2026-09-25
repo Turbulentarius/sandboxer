@@ -47,6 +47,18 @@ Use `docker compose ps` to confirm published ports show `127.0.0.1`.
 >
 > Local-only port bindings do not make the development credentials or configuration suitable for production.
 
+## Startup readiness
+
+Apache starts after setup exits successfully and MariaDB and PHP-FPM report
+healthy. MariaDB checks connectivity and InnoDB initialization; PHP checks an
+FPM worker's built-in ping response using Alpine's small `fcgi` client.
+
+Use `docker compose ps -a` to see health and setup exit status. If startup is
+blocked, inspect `docker compose logs setup db php`. Existing data directories
+need MariaDB's health-check account/configuration from image initialization.
+These startup gates do not automatically restart services or stop Apache when a
+dependency becomes unhealthy later; applications still need connection retries.
+
 ## Alpine and PHP
 
 The custom images use Alpine 3.24.2. PHP runs from Alpine's `php85` packages

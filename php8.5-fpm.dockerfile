@@ -5,6 +5,7 @@ RUN apk add --no-cache \
         curl \
         php85 \
         php85-fpm \
+        fcgi \
         sqlite \
         php85-pdo_sqlite \
         imagemagick \
@@ -50,6 +51,7 @@ RUN apk add --no-cache \
 
 COPY ./config/php85/php-fpm.d/www.conf /etc/php85/php-fpm.d/www.conf
 COPY ./config/php85/php.ini /etc/php85/php.ini
+COPY ./config/php85/healthcheck.sh /usr/local/bin/php-fpm-healthcheck
 
 RUN mkdir -p /srv/sandboxer && \
     chmod -R 775 /srv/sandboxer
