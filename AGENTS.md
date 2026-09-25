@@ -34,12 +34,12 @@ If Alpine is unsuitable, explain why before recommending another base image.
 
 When evaluating software, consider:
 
-- musl vs glibc compatibility
-- Alpine package availability
-- precompiled binaries
-- native dependencies
-- GNU-specific assumptions
-- Bash-specific assumptions
+* musl vs glibc compatibility
+* Alpine package availability
+* precompiled binaries
+* native dependencies
+* GNU-specific assumptions
+* Bash-specific assumptions
 
 Prefer minimal runtime images.
 
@@ -57,10 +57,10 @@ Do not permanently install debugging or profiling tools unless they provide recu
 
 When additional debugging software is required, explain:
 
-- what is required
-- whether it works with Alpine
-- whether musl or glibc compatibility is relevant
-- whether it should be temporary, optional, or permanent
+* what is required
+* whether it works with Alpine
+* whether musl or glibc compatibility is relevant
+* whether it should be temporary, optional, or permanent
 
 Prefer temporary packages, Compose overrides, profiles, separate debug images, or alternative build targets over bloating the normal image.
 
@@ -76,11 +76,11 @@ Avoid kitchen-sink containers.
 
 Keep optional or project-specific functionality isolated where practical through:
 
-- separate services
-- Compose profiles
-- overrides
-- alternative build targets
-- documented extensions
+* separate services
+* Compose profiles
+* overrides
+* alternative build targets
+* documented extensions
 
 Do not introduce Kubernetes, production orchestration, or deployment infrastructure unless explicitly requested.
 
@@ -96,23 +96,45 @@ Application code and assets live under the ignored `www/` directory.
 
 Local database data, import/export data, and logs live under directories such as:
 
-- `dbdata/`
-- `iedata/`
-- `log/`
+* `dbdata/`
+* `iedata/`
+* `log/`
 
 Do not commit generated data or logs.
 
+## Scope and context efficiency
+
+Inspect only files relevant to the current task.
+
+Do not perform repository-wide scans, recursive directory listings, or broad searches unless explicitly requested.
+
+Do not inspect, search, enumerate, summarize, or modify `www/`, `dbdata/`, `iedata/`, or `log/` unless the current task explicitly requires one of those directories.
+
+Treat these directories as out of scope by default.
+
+Content under `www/` belongs to applications developed with Sandboxer rather than to Sandboxer itself.
+
+The remaining excluded directories primarily contain local runtime data.
+
+When a task requires something under one of these directories, inspect only the specific subdirectory or files necessary for that task.
+
+Prefer targeted file reads and searches over broad repository exploration.
+
+Do not read documentation, configuration, or source files merely to gather general context. Read them when they are relevant to the current task.
+
 ## Working rules
 
-Before changing behavior, inspect the relevant:
+Before changing behavior, inspect only the files and configuration relevant to the change.
 
-- Compose configuration
-- Dockerfiles
-- configuration files
-- setup scripts
-- volumes
-- networking
-- README
+Depending on the task, this may include:
+
+* Compose configuration
+* Dockerfiles
+* configuration files
+* setup scripts
+* volumes
+* networking
+* README
 
 Understand existing behavior before replacing it.
 
@@ -120,15 +142,15 @@ Prefer incremental changes over broad rewrites.
 
 Distinguish between:
 
-- bugs
-- security issues
-- outdated dependencies
-- portability problems
-- Alpine compatibility problems
-- unnecessary image size
-- maintainability problems
-- developer-experience improvements
-- stylistic preferences
+* bugs
+* security issues
+* outdated dependencies
+* portability problems
+* Alpine compatibility problems
+* unnecessary image size
+* maintainability problems
+* developer-experience improvements
+* stylistic preferences
 
 Do not present stylistic preferences as technical requirements.
 
@@ -146,12 +168,12 @@ Challenge assumptions when there is a concrete technical reason.
 
 Evaluate important dependencies based on:
 
-- upstream support
-- security support
-- compatibility
-- Alpine support
-- image size
-- maintenance cost
+* upstream support
+* security support
+* compatibility
+* Alpine support
+* image size
+* maintenance cost
 
 Do not upgrade something merely because a newer version exists.
 
@@ -163,13 +185,13 @@ Sandboxer is development-only, but avoid unnecessary risks to the host.
 
 Pay particular attention to:
 
-- privileged containers
-- unnecessary Linux capabilities
-- Docker socket access
-- dangerous volume mounts
-- unnecessary host port exposure
-- services exposed beyond localhost without reason
-- committed real secrets
+* privileged containers
+* unnecessary Linux capabilities
+* Docker socket access
+* dangerous volume mounts
+* unnecessary host port exposure
+* services exposed beyond localhost without reason
+* committed real secrets
 
 Simple development credentials are acceptable when clearly development-only.
 
@@ -179,13 +201,15 @@ Use appropriate validation after changes.
 
 Common checks include:
 
-- `docker compose config`
-- `docker compose build`
-- `docker compose up`
-- `docker compose ps -a`
-- relevant `docker compose logs` commands
-- service connectivity checks
-- image-size comparisons when relevant
+* `docker compose config`
+* `docker compose build`
+* `docker compose up`
+* `docker compose ps -a`
+* relevant `docker compose logs` commands
+* service connectivity checks
+* image-size comparisons when relevant
+
+Run only the validation relevant to the change unless broader validation is explicitly requested or technically necessary.
 
 Avoid destructive Docker cleanup commands.
 
