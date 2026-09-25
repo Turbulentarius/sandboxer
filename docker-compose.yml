@@ -21,6 +21,12 @@ services:
     container_name: sandboxer-db
     image: mariadb:11.4.13
     restart: always
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 12
     environment:
       MYSQL_ROOT_PASSWORD: superduperroot
       MYSQL_DATABASE: sandbox
@@ -53,6 +59,12 @@ services:
       MYSQL_USER: sandboxer
       MYSQL_PASSWORD: localuserpassword
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/bin/sh", "/usr/local/bin/php-fpm-healthcheck"]
+      start_period: 10s
+      interval: 5s
+      timeout: 3s
+      retries: 6
   apache2:
     container_name: sandboxer-apache2
     ports:
@@ -70,7 +82,9 @@ services:
       - ./log/apache2:/var/log/apache2
     restart: unless-stopped
     depends_on:
+      setup:
+        condition: service_completed_successfully
       db:
-        condition: service_started
+        condition: service_healthy
       php:
-        condition: service_started
+        condition: service_healthy
