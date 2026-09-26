@@ -31,7 +31,8 @@ mariadb -uroot -p
 The `root` password is `superduperroot`.
 
 - To open phpMyAdmin, open `http://database.localhost` in a browser.
-- To open the default (localhost) website host, open `http://localhost`
+- To open the default website (`www/default`), open `http://localhost`.
+- To open the generated Laravel example (`www/laravel`), open `http://laravel.localhost`.
 
 Published ports bind to `127.0.0.1` (IPv4 loopback) for access from the Docker host.
 For a database client on the host, connect to `127.0.0.1:3306`; containers continue
@@ -102,6 +103,151 @@ docker run --rm --network none --entrypoint composer sandboxer-php --version
 
 Run `docker compose up -d --no-deps php` to apply the rebuilt image to the service.
 
+## Optional Node / React / Vite development
+
+The `frontend` profile provides Node 24.21.0 on Alpine 3.24 without adding packages
+to PHP or Apache. Source files and Git stay on the host. Copy `.env.example` to
+`.env` at the repository root and set `APP_PATH` to a project directory relative
+to `www/` (default: `laravel`). Run setup first to create the example. This Compose settings file is
+separate from Laravel's application `.env`. The selected directory must exist
+and contain a `package.json` with a Vite `dev` script.
+
+```bash
+docker compose run --rm node npm install
+# Use npm ci instead when the project already has a package-lock.json.
+docker compose --profile frontend up -d node
+docker compose logs --tail=30 node
+docker compose run --rm node npm run build
+docker compose stop node
+```
+
+Normal `docker compose up` does not start Node. Explicit `run node` commands do
+not require the profile flag. The Vite port is fixed at `127.0.0.1:5173`; startup
+fails if it is occupied. Open `http://localhost:5173` for a standalone React/Vite
+app. For the example, open `http://laravel.localhost`; Vite serves its frontend assets.
+
+Dependencies live in the Compose `node_modules` volume, separate from host
+`node_modules`. Stop Node before changing `APP_PATH`, then reinstall dependencies
+(prefer `npm ci`) and recreate Node. Use separate Compose project names for
+separate dependency volumes; running multiple stacks also requires distinct host
+ports. Avoid alternating host and container npm installations into the same
+`node_modules` directory.
+
+The generated example already configures Vite for Docker. For other Laravel
+projects, merge these settings into `vite.config.js`, keeping their plugins and inputs:
+
+```js
+server: {
+    hmr: { host: 'localhost' },
+    watch: { usePolling: process.env.VITE_USE_POLLING === 'true' },
+},
+```
+
+If mounted-file changes are not detected, stop Node and try polling:
+
+```bash
+docker compose run --rm --service-ports -e VITE_USE_POLLING=true node
+```
+
+Polling uses more CPU. File watching and ownership need validation on each host
+platform; container commands currently run as root and may create root-owned
+source/build files on native Linux. Alpine uses musl, so native npm packages need
+compatible binaries or project-specific build dependencies. Add those only when
+needed. Host editors may need a container-aware setup for dependency completion
+because the dependency volume is not visible on the host.
+
+Apache can serve a standalone React app's built `dist/` directory, with an
+`index.html` fallback if client-side routing is used. This does not provide Vite
+hot reload or a server-side React runtime. Laravel's Vite build goes into its
+application's `public/build/`. Stop Vite when testing built Laravel assets; if an
+abrupt shutdown leaves `public/hot`, remove that stale file after confirming the
+dev server has stopped.
+
+## Default site setup
+
+On every setup run, `index.php` and `beamtic-sandboxer.png` from
+`config/host/default/` are copied to `www/default/` only if missing. Existing files,
+including edited pages, are preserved. Existing symlinks are left alone. This
+step runs independently of the phpMyAdmin completion marker.
+
+After editing the templates, rebuild with `docker compose build setup` and run
+`docker compose run --rm setup`. Template changes do not replace existing files;
+move an individual destination file aside first if you want its new template.
+
+## Laravel example setup
+
+The setup container installs an independent example in `www/laravel`, served at
+`http://laravel.localhost`. The default `http://localhost` site stays in
+`www/default`; phpMyAdmin stays at `http://database.localhost`. All applications
+under `www/` remain ignored by Sandboxer's Git repo; the installer and dependency
+lockfile are the reproducible source of the example.
+
+The setup image downloads the official `laravel/laravel` v13.10.1 skeleton,
+verifies its pinned SHA-256, and installs dependencies from
+`config/laravel/composer.lock` (Laravel framework 13.33.0). PHP development
+packages are included so Artisan tests work. Composer and download tools stay
+in the build stage; no Node packages are added to the setup or PHP image.
+
+On first run, setup stages the app, sets `APP_URL=http://laravel.localhost`,
+generates a unique application key, and initializes its own SQLite database.
+Only successful initialization publishes `www/laravel`. Failed attempts clean
+up staging files and can be retried. Laravel's built-in welcome page works
+without npm or Vite; use the optional Node service when developing frontend assets.
+
+If `www/laravel` already exists (including a symlink), setup leaves it entirely
+unchanged: no reinstall, migrations, key rotation, or upgrades. It never resets
+an existing database. The phpMyAdmin `www/setup-completed` marker controls only
+phpMyAdmin; it does not prevent installing the Laravel example on an existing
+Sandboxer checkout. A fresh example can be installed after you deliberately move
+an existing `www/laravel` aside; preserve any work and database first.
+
+For an existing checkout after these setup changes:
+
+```bash
+docker compose build setup apache2
+docker compose run --rm setup
+docker compose up -d apache2
+```
+
+New checkouts install both examples through the normal `docker compose up` flow.
+No Compose override is needed. If your system does not resolve
+`laravel.localhost`, map it to `127.0.0.1` in your host's hosts file.
+
+Useful commands (change the working directory for your own projects):
+
+```bash
+docker compose exec -w /srv/sandboxer/laravel php composer check-platform-reqs
+docker compose exec -w /srv/sandboxer/laravel php php artisan about
+docker compose exec -w /srv/sandboxer/laravel -e DB_CONNECTION=sqlite -e DB_DATABASE=:memory: php php artisan test
+```
+
+Run Composer and Artisan inside PHP; run npm through the Node service. Laravel's
+`composer run dev` / `composer run setup` scripts may expect Node in the same
+environment, so use the separate commands documented here. Queue workers and
+scheduling remain application-specific. The example is a plain Laravel skeleton,
+not a React starter kit; the Node service also supports separate React projects.
+
+Laravel uses `DB_*` settings, not Sandboxer's `MYSQL_*` names. To deliberately
+switch an application to the included MariaDB, set its own `.env` to:
+
+```dotenv
+DB_CONNECTION=mysql
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=sandbox
+DB_USERNAME=sandboxer
+DB_PASSWORD=localuserpassword
+```
+
+Run migrations only after choosing the intended database. Keep `storage/` and
+`bootstrap/cache/` writable. For other Laravel sites, add an Apache virtual host
+modeled on `config/apache2/conf.d/laravel.conf`, serving only `public/`.
+
+When upgrading the generated template, update the skeleton version and checksum
+in `setup.dockerfile`, regenerate its Composer lockfile with PHP 8.5, and review
+`config/laravel/vite.config.js` against the new skeleton. Rebuild and test a fresh
+installation; existing applications remain the developer's responsibility.
+
 ## MariaDB version
 
 The database uses the official `mariadb:11.4.13` image from the
@@ -150,9 +296,9 @@ For isolated script checks, `SANDBOXER_ROOT` and `PHPMYADMIN_CONFIG` can overrid
 the destination and configuration source. Their container defaults are
 `/srv/sandboxer` and `/config.inc.php`.
 
-## Testing the phpMyAdmin installer
+## Testing the setup installers
 
-Run the tests after changing the installer or its tests, before committing.
+Run the tests after changing a setup script or its tests, before committing.
 They require Python 3, a POSIX shell, `sha256sum`, and `unzip` on your host. From the
 repository root:
 
@@ -160,10 +306,12 @@ repository root:
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 ```
 
-Expect seven tests reporting `ok`, followed by `OK`. They check installation,
-checksum verification, failure handling, retries, cleanup, and preservation of existing files.
+Expect eighteen tests reporting `ok`, followed by `OK`. They check phpMyAdmin
+checksum verification and the setup scripts' failure handling, retries, cleanup,
+and preservation of existing files, symlinks, application keys, and databases.
 
-The tests use temporary directories and a fake download. They are safe to run
+The tests use temporary directories, a fake phpMyAdmin download, and simulated
+Laravel initialization commands. They are safe to run
 with phpMyAdmin installed and do not touch your application or database data.
 They are not needed during normal use and do not replace testing the real
 installation in Docker.

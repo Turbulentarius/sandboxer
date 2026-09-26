@@ -9,7 +9,9 @@ RUN apk add --no-cache \
         bash
 
 
-COPY ./config/apache2/conf.d/sandboxer.conf /etc/apache2/conf.d/sandboxer.conf
+# Load the generic localhost site first so it remains the fallback virtual host.
+COPY ./config/apache2/conf.d/sandboxer.conf /etc/apache2/conf.d/000-sandboxer.conf
+COPY ./config/apache2/conf.d/laravel.conf /etc/apache2/conf.d/laravel.conf
 COPY ./config/apache2/conf.d/phpmyadmin.conf /etc/apache2/conf.d/phpmyadmin.conf
 COPY ./config/apache2/conf.d/mpm.conf /etc/apache2/conf.d/mpm.conf
 COPY ./config/apache2/httpd.conf /etc/apache2/httpd.conf

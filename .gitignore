@@ -47,3 +47,8 @@ desktop.ini
 # Python bytecode
 __pycache__/
 *.py[cod]
+# Local Compose settings
+.env
+
+# Reproducible dependencies for the generated Laravel example
+!config/laravel/composer.lock
