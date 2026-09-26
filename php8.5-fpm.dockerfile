@@ -58,7 +58,10 @@ RUN mkdir -p /srv/sandboxer && \
 
 WORKDIR /srv/sandboxer
 
-RUN curl -sS https://getcomposer.org/installer | php85 -- --install-dir=/usr/local/bin --filename=composer
+# Keep the version and SHA-256 from https://getcomposer.org/download/ in sync.
+RUN curl -fsSLo /usr/local/bin/composer https://getcomposer.org/download/2.10.3/composer.phar && \
+    echo '7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6  /usr/local/bin/composer' | sha256sum -c - && \
+    chmod 755 /usr/local/bin/composer
 
 # Ensure PHP-FPM runs in the foreground
 CMD ["php-fpm85", "-R", "-F"]

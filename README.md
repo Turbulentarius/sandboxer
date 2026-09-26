@@ -85,6 +85,23 @@ through to FPM workers in `config/php85/php-fpm.d/www.conf`; other inherited
 variables remain cleared. PHP receives the application account, not the database
 root password. Rebuild PHP after changing the FPM configuration.
 
+## Composer
+
+The PHP image installs Composer 2.10.3 directly from its versioned PHAR download
+and verifies a pinned SHA-256 checksum before making it executable. Download or
+checksum errors fail the build. No additional packages are needed.
+
+To update Composer, change both the version in the download URL and the checksum
+in `php8.5-fpm.dockerfile` using the [official downloads](https://getcomposer.org/download/).
+Rebuild and check the installed version without mounting application files:
+
+```bash
+docker compose build php
+docker run --rm --network none --entrypoint composer sandboxer-php --version
+```
+
+Run `docker compose up -d --no-deps php` to apply the rebuilt image to the service.
+
 ## MariaDB version
 
 The database uses the official `mariadb:11.4.13` image from the
