@@ -24,6 +24,9 @@ RUN COMPOSER_ALLOW_SUPERUSER=1 php85 /usr/local/bin/composer install \
 COPY ./config/laravel/vite.config.js ./vite.config.js
 
 FROM setup-base
+# Run bind-mount setup with its numeric owner; no passwd/group entries needed.
+RUN apk add --no-cache su-exec
+COPY ./config/install-scripts/setup-entrypoint.sh /setup-entrypoint.sh
 COPY --from=laravel-template /opt/laravel /opt/laravel
 COPY ./config/install-scripts/phpmyadmin.sh /phpmyadmin.sh
 COPY ./config/install-scripts/laravel.sh /laravel.sh
@@ -31,4 +34,5 @@ COPY ./config/install-scripts/setup.sh /setup.sh
 COPY ./config/install-scripts/default.sh /default.sh
 COPY ./config/host/default/ /opt/default/
 COPY ./config/host/phpMyAdmin/config.inc.php /
+ENTRYPOINT ["/bin/sh", "/setup-entrypoint.sh"]
 CMD ["/bin/sh", "/setup.sh"]

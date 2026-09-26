@@ -171,6 +171,34 @@ application's `public/build/`. Stop Vite when testing built Laravel assets; if a
 abrupt shutdown leaves `public/hot`, remove that stale file after confirming the
 dev server has stopped.
 
+## Setup file ownership
+
+The setup container starts as root, reads the numeric UID/GID of `/srv/sandboxer`
+(the `www/` bind mount), and uses Alpine's small `su-exec` utility to run its setup
+command as that identity. No host UID/GID variables, host scripts, or additional
+bootstrap command are needed. A temporary directory checks write access before
+any installer runs. Missing directories, failed identity changes, or unwritable
+mounts stop setup with an error. No users/groups are added to the container.
+
+On native Linux without user remapping, new setup files belong to the owner of
+`www/`, so that owner can edit the normally owner-writable generated files. On
+Docker Desktop, setup uses the IDs exposed by its file-sharing layer; macOS and
+Windows host access remains governed by that layer and host permissions. This
+uses the same container code on every platform; Desktop validation is still
+required on those hosts.
+
+UID 0 is accepted: rootless Docker or user namespaces may map it to an
+unprivileged host user. Unmapped IDs, filesystem ACLs, or restrictive sharing can
+still prevent writes. Ownership of the directory is the source of truth, not the
+identity of whoever ran Compose. In particular, a missing `www/` may be created
+by Docker as root-owned on native Linux; setup cannot infer a different intended
+owner from that directory. Existing root-owned files are not repaired or changed.
+PHP-FPM and Node runtime writes retain their existing behavior; this change
+covers files created by the setup container only.
+
+After updating the setup image, normal `docker compose up --build` applies this
+behavior. Existing applications retain their normal installer preservation rules.
+
 ## Default site setup
 
 On every setup run, `index.php` and `beamtic-sandboxer.png` from
@@ -357,3 +385,15 @@ Laravel initialization commands. They are safe to run
 with phpMyAdmin installed and do not touch your application or database data.
 They are not needed during normal use and do not replace testing the real
 installation in Docker.
+
+For the setup entrypoint's numeric ownership and failure-path checks, use Docker:
+
+```bash
+docker compose build setup
+python3 tests/check_setup_ownership.py
+```
+
+These seven checks use temporary container filesystems without networking. They
+cover arbitrary numeric IDs, UID 0, matching non-root execution, missing paths,
+read-only mounts, insufficient permissions, and identity mismatches. They do not
+exercise Docker Desktop file sharing or a real rootless daemon.
