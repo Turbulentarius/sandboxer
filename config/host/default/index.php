@@ -50,44 +50,13 @@
             margin-bottom: 48px;
         }
 
-        .eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 7px 12px;
-            border: 1px solid rgba(255, 122, 0, 0.25);
-            border-radius: 999px;
-            background: rgba(255, 122, 0, 0.06);
-            color: #ffad55;
-            font-size: 0.78rem;
-            font-weight: 700;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            margin-bottom: 20px;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: clamp(3rem, 8vw, 6rem);
-            line-height: 0.9;
-            letter-spacing: -0.06em;
-            text-transform: uppercase;
-        }
-
-        h1 span {
+        header img {
             display: block;
-            margin-top: 12px;
-            font-size: 0.34em;
-            letter-spacing: 0.18em;
-            color: var(--blue);
-        }
-
-        header p {
-            max-width: 620px;
-            margin: 24px auto 0;
-            color: var(--muted);
-            line-height: 1.7;
-            font-size: 1.02rem;
+            width: 100%;
+            max-width: 380px;
+            height: auto;
+            margin: 0 auto;
+            filter: drop-shadow(0 18px 35px rgba(0, 0, 0, 0.35));
         }
 
         .links {
@@ -175,9 +144,12 @@
             position: absolute;
             right: 22px;
             bottom: 20px;
+            z-index: 1;
             font-size: 1.35rem;
             color: rgba(255, 255, 255, 0.45);
-            transition: transform 180ms ease, color 180ms ease;
+            transition:
+                transform 180ms ease,
+                color 180ms ease;
         }
 
         .card:hover .arrow {
@@ -211,7 +183,7 @@
 <body>
     <main>
         <header>
-           <img src="beamtic-sandboxer.png" alt="">
+            <img src="beamtic-sandboxer.png" alt="Beamtic Sandboxer">
         </header>
 
         <section class="links">
