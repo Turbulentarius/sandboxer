@@ -109,6 +109,10 @@
             --glow: rgba(36, 150, 237, 0.16);
         }
 
+        .card.hedgedoc {
+            --glow: rgba(72, 187, 120, 0.16);
+        }
+
         .icon {
             position: relative;
             z-index: 1;
@@ -198,6 +202,13 @@
                 <div class="icon">L</div>
                 <h2>Laravel</h2>
                 <p>Open the local Laravel development application.</p>
+                <span class="arrow">→</span>
+            </a>
+
+            <a class="card hedgedoc" href="http://hedgedoc.localhost">
+                <div class="icon">H</div>
+                <h2>HedgeDoc</h2>
+                <p>Open the local collaborative Markdown editor.</p>
                 <span class="arrow">→</span>
             </a>
 

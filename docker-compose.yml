@@ -2,6 +2,8 @@ volumes:
   node_modules:
   mariadb:
     driver: local
+  hedgedoc_public:
+    driver: local
 
 networks:
     sandboxer:
@@ -94,6 +96,7 @@ services:
     volumes:
       - ./www:/srv/sandboxer
       - ./log/apache2:/var/log/apache2
+      - hedgedoc_public:/srv/hedgedoc/public:ro
     restart: unless-stopped
     depends_on:
       setup:
@@ -101,4 +104,43 @@ services:
       db:
         condition: service_healthy
       php:
+        condition: service_healthy
+  hedgedoc:
+    image: quay.io/hedgedoc/hedgedoc:1.12.0
+    environment:
+      CMD_DB_URL: sqlite:///hedgedoc/public/hedgedoc.sqlite
+      CMD_DOMAIN: hedgedoc.localhost
+      CMD_HOST: 0.0.0.0
+      CMD_PROTOCOL_USESSL: "false"
+      CMD_URL_ADDPORT: "false"
+      CMD_IMAGE_UPLOAD_TYPE: filesystem
+      CMD_ENABLE_UPLOADS: all
+      UPLOADS_MODE: "0755"
+    volumes:
+      - hedgedoc_public:/hedgedoc/public
+    networks:
+      - sandboxer
+    restart: unless-stopped
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+  hedgedoc-setup:
+    image: quay.io/hedgedoc/hedgedoc:1.12.0
+    user: hedgedoc
+    entrypoint: [node]
+    command: [/hedgedoc/create-sandboxer-user.js]
+    healthcheck:
+      disable: true
+    environment:
+      CMD_DB_URL: sqlite:///hedgedoc/public/hedgedoc.sqlite
+      CMD_DOMAIN: hedgedoc.localhost
+      SANDBOXER_HEDGEDOC_PASSWORD: localuserpassword
+    volumes:
+      - hedgedoc_public:/hedgedoc/public
+      - ./config/install-scripts/hedgedoc-user.js:/hedgedoc/create-sandboxer-user.js:ro
+    networks:
+      - sandboxer
+    restart: "no"
+    depends_on:
+      hedgedoc:
         condition: service_healthy

@@ -40,6 +40,7 @@ The `root` password is `superduperroot`.
 - To open phpMyAdmin, open `http://database.localhost` in a browser.
 - To open the default website (`www/default`), open `http://localhost`.
 - To open the generated Laravel example (`www/laravel`), open `http://laravel.localhost`.
+- To open HedgeDoc, open `http://hedgedoc.localhost`.
 
 Published ports bind to `127.0.0.1` (IPv4 loopback) for access from the Docker host.
 For a database client on the host, connect to `127.0.0.1:3306`; containers continue
@@ -254,6 +255,40 @@ When upgrading the generated template, update the skeleton version and checksum
 in `setup.dockerfile`, regenerate its Composer lockfile with PHP 8.5, and review
 `config/laravel/vite.config.js` against the new skeleton. Rebuild and test a fresh
 installation; existing applications remain the developer's responsibility.
+
+## HedgeDoc
+
+The normal `docker compose up` flow also starts HedgeDoc 1.12.0 at
+`http://hedgedoc.localhost`. Apache proxies the application and its WebSocket
+connection through the shared `sandboxer` network. HedgeDoc uses SQLite for this
+local setup, and the named `hedgedoc_public` volume stores its database and
+filesystem uploads at `/hedgedoc/public`. Apache serves `/uploads/` directly
+from that volume, while HedgeDoc handles the rest of the application. The
+volume is retained when the container is recreated; remove it explicitly only
+when you want to discard HedgeDoc data.
+
+The setup flow creates the default local account `sandboxer@sandboxer.localhost` with the
+password `localuserpassword`. The account is created only when it does not
+already exist, so rerunning setup does not reset its password.
+
+Check account setup with `docker compose logs hedgedoc-setup` and
+`docker compose ps -a hedgedoc-setup`; successful setup exits with code 0.
+To retry without restarting HedgeDoc, run:
+
+```bash
+docker compose run --rm --no-deps hedgedoc-setup
+```
+
+The script preserves existing accounts and passwords. Creating a missing account
+requires `SANDBOXER_HEDGEDOC_PASSWORD`; a missing password or database failure exits
+with code 1. Setup explicitly exits after closing the database because HedgeDoc's
+model imports can leave a child process running.
+
+Run the isolated script tests without starting any services:
+
+```bash
+docker compose run --rm --no-deps --entrypoint node -v ./tests:/tests:ro hedgedoc-setup --test /tests/test_hedgedoc_user.cjs
+```
 
 ## MariaDB version
 
