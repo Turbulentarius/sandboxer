@@ -21,10 +21,17 @@ View your running containers after starting them:
 docker ps
 ```
 
+Compose generates container names from the project and service names. Use
+`docker compose exec <service> ...` to run commands without depending on a
+container name. Run `docker compose up -d` to recreate existing containers with
+the generated names; their bind-mounted application and database data remain.
+Separate projects can use `docker compose -p <name> ...`, but concurrent stacks
+still require different host ports.
+
 If you need CLI access to the database:
 
 ```
-docker exec -it sandboxer-db bash
+docker compose exec db bash
 mariadb -uroot -p
 ```
 

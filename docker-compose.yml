@@ -26,7 +26,6 @@ services:
     networks:
       - sandboxer
   setup: # A one-time-run setup service for when starting containers. Also, this is the service name which should only be unique to this docker-compose project
-    container_name: sandboxer-setup # The name of the container. Should be unique, possibly prefixed to avoid potential collisions with other containers outside of the project
     command: /bin/sh /setup.sh
     build:
       context: ./
@@ -36,7 +35,6 @@ services:
       - ./www:/srv/sandboxer
     restart: no
   db:
-    container_name: sandboxer-db
     image: mariadb:11.4.13
     restart: always
     healthcheck:
@@ -58,7 +56,6 @@ services:
     networks:
       sandboxer:
   php:
-    container_name: sandboxer-php # Name of the container; this is already prefixed with "sandboxer". E.g. run "docker ps" to see what I mean
     build:
       context: ./
       dockerfile: ./php8.5-fpm.dockerfile
@@ -84,7 +81,6 @@ services:
       timeout: 3s
       retries: 6
   apache2:
-    container_name: sandboxer-apache2
     ports:
       - "127.0.0.1:80:80" # Publish only on the host's IPv4 loopback interface.
       - "127.0.0.1:443:443"
