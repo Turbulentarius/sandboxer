@@ -422,3 +422,9 @@ These seven checks use temporary container filesystems without networking. They
 cover arbitrary numeric IDs, UID 0, matching non-root execution, missing paths,
 read-only mounts, insufficient permissions, and identity mismatches. They do not
 exercise Docker Desktop file sharing or a real rootless daemon.
+
+### Profundarium asset URLs
+
+Profundarium stores its CSS and fonts under `public/profundarium/assets/`.
+The Laravel virtual host serves these directly at `/profundarium/assets/`;
+no asset alias is required.
