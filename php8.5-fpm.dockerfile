@@ -2,6 +2,7 @@ FROM alpine:3.24.2
 RUN apk add --no-cache \
         bash \
         shadow \
+        su-exec \
         curl \
         php85 \
         php85-fpm \
@@ -52,6 +53,7 @@ RUN apk add --no-cache \
 COPY ./config/php85/php-fpm.d/www.conf /etc/php85/php-fpm.d/www.conf
 COPY ./config/php85/php.ini /etc/php85/php.ini
 COPY ./config/php85/healthcheck.sh /usr/local/bin/php-fpm-healthcheck
+COPY ./config/php85/entrypoint.sh /usr/local/bin/php-fpm-entrypoint
 
 RUN mkdir -p /srv/sandboxer && \
     chmod -R 775 /srv/sandboxer
@@ -64,4 +66,5 @@ RUN curl -fsSLo /usr/local/bin/composer https://getcomposer.org/download/2.10.3/
     chmod 755 /usr/local/bin/composer
 
 # Ensure PHP-FPM runs in the foreground
-CMD ["php-fpm85", "-R", "-F"]
+ENTRYPOINT ["/bin/sh", "/usr/local/bin/php-fpm-entrypoint"]
+CMD ["php-fpm85", "-F"]

@@ -193,11 +193,36 @@ still prevent writes. Ownership of the directory is the source of truth, not the
 identity of whoever ran Compose. In particular, a missing `www/` may be created
 by Docker as root-owned on native Linux; setup cannot infer a different intended
 owner from that directory. Existing root-owned files are not repaired or changed.
-PHP-FPM and Node runtime writes retain their existing behavior; this change
-covers files created by the setup container only.
+Node and explicit CLI commands retain their existing identities. PHP-FPM worker
+ownership is described below.
 
 After updating the setup image, normal `docker compose up --build` applies this
 behavior. Existing applications retain their normal installer preservation rules.
+
+## PHP-FPM worker ownership
+
+The FPM master starts as root and starts workers with the numeric UID/GID exposed
+by the `www/` mount. No host variables or container user accounts are required.
+Alpine's small `su-exec` package checks write access as the selected worker before
+FPM starts. The application mount remains writable; startup does not recursively
+change ownership or permissions. Apply changes with `docker compose up -d --build php`.
+
+When the mount reports UID 0, startup tries the existing `nobody` account instead.
+This can work with Docker Desktop's translated file permissions. If that identity
+cannot write, startup fails explicitly rather than allowing root workers. Under
+rootless Docker/user namespaces, UID 0 may map to an unprivileged host owner;
+such a mount can still be inaccessible to other container IDs. Strict non-root
+workers and writable mounts therefore are not guaranteed on every mapping.
+Docker Desktop and real rootless Docker must be validated on those platforms.
+Run `python3 tests/check_fpm_ownership.py` after building PHP to test real FPM
+requests and file ownership in disposable containers, including failure cases.
+
+The check covers the mount root, not every existing application file. Older
+root-owned caches, sessions, logs, or uploads can still need targeted ownership
+repair. Different owners for individual applications require separate pools or
+appropriate shared permissions. The worker cannot modify root-owned container
+configuration, but it can modify application files accessible to the mount owner.
+`docker compose exec php ...` still runs CLI commands as root by default.
 
 ## Default site setup
 
